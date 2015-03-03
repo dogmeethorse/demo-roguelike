@@ -19,44 +19,27 @@ game.screen = {
 	play : {
 		map : null,
 		player : null, 
-		move : function(dX, dY){
+		gameEnded : false,
+		setGameEnded : function(gameEnded){
+			this.gameEnded = gameEnded;
+		},
+		move : function(dX, dY, dZ){
         	var newX = this.player.x + dX;
         	var newY = this.player.y + dY;
+        	var newZ = this.player.z + dZ;
         	// Try to move to the new cell
-        	this.player.tryMove(newX, newY, this.map);
+        	this.player.tryMove(newX, newY, newZ, this.map);
     	},
 		enter : function(){
 			console.log('entered play screen');
-			map = [];
-			var mapWidth = 500;
-			var mapHeight = 500;
-			for (var x = 0; x < mapWidth; x++) {
-        	// Create the nested array for the y values
-        		map.push([]);
-        		// Add all the tiles
-        		for (var y = 0; y < mapHeight; y++) {
-            		map[x].push(game.Tile.nullTile);
-        		}
-    		}
-    		var generator = new ROT.Map.Cellular(mapWidth, mapHeight);
-    		generator.randomize(0.5);
-    		var totalIterations = 3;
-    		for(var i = 0; i < totalIterations - 1; i++){
-    			//console.log("iteration " + i);
-    			generator.create();
-    		}
-    		generator.create(function(x, y, v){
-    			if(v ===1){
-    				map[x][y] = game.Tile.floorTile;
-    				} else{
-    					map[x][y] = game.Tile.wallTile;
-    			}
-    		});
-    		//console.log();
-    		
+			//map = [];
+			var width = 100;
+			var height = 48;
+			var depth = 6;
+			var tiles = new game.Builder(width, height, depth).tiles;    		
     		// make player and set position
     		this.player = new game.Entity(game.playerTemplate);
-    		this.map = new game.Map(map, this.player);
+    		this.map = new game.Map(tiles, this.player);
 			this.map.engine.start();
 		},
 		exit : function(){
@@ -65,6 +48,7 @@ game.screen = {
 		render : function(display){
 			var screenWidth = game.screenWidth;
 			var screenHeight = game.screenHeight;
+			var visibleCells = {};
 			// topLeftX is kind of a shitty var name. it is the map coordinate of the left side of the screen
 			// Stop from scrolling off the map to the left
 			var topLeftX = Math.max(0, this.player.x - (screenWidth/2));
@@ -74,24 +58,47 @@ game.screen = {
 			var topLeftY = Math.max(0, this.player.y - (screenHeight/2));
 			// no make sure not off bottom of map
 			topLeftY = Math.min(topLeftY, this.map.height - screenHeight);
+			this.map.getFov(this.player.z).compute(
+            	this.player.x, this.player.y, 
+            	this.player.sightRadius, 
+            	function(x, y, radius, visibility) {
+            		//console.log("adding key");
+                	visibleCells[x + "," + y] = true;
+                	//console.log(visibleCells[x + ',' + y]);
+            	});
+            //console.log(visibleCells);
+            //console.log(this.player.sightRadius);
 		    for(var x = topLeftX; x < topLeftX + screenWidth; x++){
-		    	for(var y = topLeftY; y < topLeftY + screenHeight; y++){
-		    		var tile = this.map.getTile(x, y);
-		    		display.draw(x - topLeftX, y - topLeftY, tile.chr, tile.foreground, tile.background);
+		    	for(var y = topLeftY; y < topLeftY + screenHeight; y++){	
+		    		if (visibleCells[x + ',' + y]){
+		    			var tile = this.map.getTile(x, y, this.player.z);
+		    			this.map.exploredTiles[x + "," + y +"," + this.player.z] = true;	
+		    			display.draw(x - topLeftX, y - topLeftY, tile.chr, tile.foreground, tile.background);
+		    		} else if(this.map.exploredTiles[x + "," +y +","+ this.player.z]){
+		    			var tile = this.map.getTile(x, y, this.player.z);
+		    			display.draw(x - topLeftX, y - topLeftY,
+		    						tile.chr,
+		    						tile.outOfSightForeground,
+		    						tile.background);	
+		    		}
 		    	}
 		    }
 		    var entities = this.map.entities;
-		    for(var i = 0; i < entities.length; i++){
-		    	var entity = entities[i];
+		    for(var key in  entities ){
+		    	var entity = entities[key];
 		    	if (entity.x >= topLeftX && entity.y >= topLeftY &&
 		    		entity.x < topLeftX + screenWidth &&
-		    		entity.y < topLeftY + screenHeight){
-		    			display.draw(
-		    				entity.x - topLeftX,
-		    				entity.y - topLeftY, 
-		    				entity.chr, 
-		    				entity.foreground, 
-		    				entity.background);
+		    		entity.y < topLeftY + screenHeight &&
+		    		entity.z === this.player.z){
+                	if (visibleCells[entity.x + ',' + entity.y]) {
+                    	display.draw(
+                        entity.x - topLeftX, 
+                        entity.y - topLeftY,    
+                        entity.chr, 
+                        entity.foreground, 
+                        entity.background
+                    	);
+                	}
 		    	}
 		    }
 		    // Get the messages in the player's queue and render them
@@ -110,25 +117,40 @@ game.screen = {
         	display.drawText(0, screenHeight, stats);
 		},
 		handleInput : function(inputType, inputData){
-		    if (inputType === 'keydown') { 
-            	if(inputData.keyCode === ROT.VK_RETURN){
-                	game.switchScreen(game.screen.win);
-            	} else if(inputData.keyCode === ROT.VK_ESCAPE){
-                	game.switchScreen(game.screen.lose);
-            	} else{
+		    if (inputType === 'keydown') {
+		    	//If the game is over, enter will bring the user to the losing screen.
+        		if (this.gameEnded) {
+            		if (inputType === 'keydown' && inputData.keyCode === ROT.VK_RETURN) {
+                		game.switchScreen(game.screen.lose);
+            		}
+            	// Return to make sure the user can't still play
+            		return;
+        		} else{
             		//movement
             		if(inputData.keyCode === ROT.VK_LEFT) {
-                		this.move(-1, 0);
+                		this.move(-1, 0, 0);
             		} else if(inputData.keyCode === ROT.VK_RIGHT) {
-                		this.move(1, 0);
+                		this.move(1, 0, 0);
             		} else if(inputData.keyCode === ROT.VK_UP) {
-                		this.move(0, -1);
+                		this.move(0, -1, 0);
             		} else if(inputData.keyCode === ROT.VK_DOWN) {
-                		this.move(0, 1);
+                		this.move(0, 1, 0);
             		}
             		this.map.engine.unlock();
             	}
-			}
+			} else if (inputType === 'keypress') {
+            var keyChar = String.fromCharCode(inputData.charCode);
+            if (keyChar === '>') {
+                this.move(0, 0, 1);
+            } else if (keyChar === '<') {
+                this.move(0, 0, -1);
+            } else {
+                // Not a valid key
+                return;
+            }
+            // Unlock the engine
+            this.map.engine.unlock();
+        } 
 		}
 	},
 	win :{

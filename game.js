@@ -1,3 +1,5 @@
+// \uF8FF = apple
+
 var game = {
 	screenWidth: 80,
 	screenHeight: 24,
@@ -23,7 +25,7 @@ var game = {
 		}
 		bindEventToScreen('keydown');
     	//bindEventToScreen('keyup');
-    	//bindEventToScreen('keypress');
+    	bindEventToScreen('keypress');
 	},
 	switchScreen : function(screen){
 		if(this.currentScreen !== null){

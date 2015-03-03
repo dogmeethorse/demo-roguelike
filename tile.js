@@ -3,14 +3,30 @@ game.Tile= function(properties){
 	game.Glyph.call(this, properties);
 	this.walkable = properties['walkable'] || false;
 	this.diggable = properties['diggable'] || false;
+	this.blocksLight = properties['blocksLight'] || false;
+	this.outOfSightForeground ="darkslategrey";
 }
 game.Tile.extend(game.Glyph);
 
 game.Tile.nullTile			= new game.Tile({});
-game.Tile.floorTile			= new game.Tile({chr : ".",walkable : true});
-game.Tile.wallTile			= new game.Tile({chr : '#', foreground : 'slategrey', walkable : false, diggable: true});
-game.Tile.stairsUpTile		= new game.Tile({chr : "<", foreground : 'white', walkable : true, diggable : false});
-game.Tile.stairsDownTIle	= new game.TIle({chr : ">", foreground : 'white', walkable : true, diggable : false});
+game.Tile.floorTile			= new game.Tile({chr : ".", foreground : "white",
+											walkable : true, 
+											blocksLight : false});
+game.Tile.wallTile			= new game.Tile({chr : '#',
+											foreground : 'slategrey',
+											walkable : false,
+											blocksLight : true, 
+											diggable: true});
+game.Tile.stairsUpTile		= new game.Tile({chr : "<",
+											foreground : 'white',
+											walkable : true,
+											blocksLight : false,
+											diggable : false});
+game.Tile.stairsDownTile	= new game.Tile({chr : ">",
+											foreground : 'white',
+											walkable : true,
+											blocksLight : false,
+											diggable : false});
 
 game.getNeighborPositions = function(x, y) {
 	//returns array of tile coordinates
