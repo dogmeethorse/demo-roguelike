@@ -9,7 +9,7 @@ game.mixins.playerActor = {
 			game.sendMessage(this, "WOW, you're dead Press [Enter] to continue!");
 		}
 		game.refresh();
-		this.map.engine.lock();
+		game.dungeon.engine.lock();
 		this.clearMessages();
 	}
 }

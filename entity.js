@@ -41,56 +41,55 @@ game.Entity.prototype.hasMixin = function(obj){
 	}
 }
 
-game.Entity.prototype.setPosition = function(x, y, z) {
+game.Entity.prototype.setPosition = function(x, y) {
 	var oldX = this.x;
 	var oldY = this.y;
-	var oldZ = this.z;
     this.x = x;
     this.y = y;
-    this.z = z;
     if (this.map){
-    	this.map.updateEntityPosition(this, oldX, oldY, oldZ);
+    	this.map.updateEntityPosition(this, oldX, oldY);
     }
 }
 
-game.Entity.prototype.tryMove = function(x, y, z, map){
-	var map = this.map;
-	var tile = map.getTile(x, y, this.z);
-	var target = map.getEntityAt(x, y, this.z);
+game.Entity.prototype.tryMove = function(x, y, z){
+	var map = game.dungeon.currentLevel;
+	var tile = map.getTile(x, y);
+	var target = map.getEntityAt(x, y);
 	// if z is different then look for stairs
-	if (z < this.z){
+	if (z === -1){
 		if (tile !== game.Tile.stairsUpTile){
 			game.sendMessage(this, "You can't go up here!");
 		} else {
-			game.sendMessage(this, "You ascend to level %d!", [z + 1]);
-            this.setPosition(x, y, z);
+			game.sendMessage(this, "You ascend up level!");
+        	game.dungeon.goUpStairs();
 		}	
-	}else if (z > this.z){
+	}else if (z === 1){
 		if (tile !== game.Tile.stairsDownTile){
 			game.sendMessage(this, "You can't get down here!", [z - 1]);
 		} else {
-			game.sendMessage(this, "You go down to level %d", [z + 1]);
-			this.setPosition(x, y, z);
+			game.sendMessage(this, "You go down a level!");
+			game.dungeon.goDownStairs();
 		}
-	} else if (target){
-		if (this.hasMixin('attacker') &&
-			(this.hasMixin(game.mixins.playerActor) ||
-			 target.hasMixin(game.mixins.playerActor))
-			){
-			this.attack(target);
+	}
+	//} else if (target){
+	//	if (this.hasMixin('attacker') &&
+	//		(this.hasMixin(game.mixins.playerActor) ||
+	//		 target.hasMixin(game.mixins.playerActor))
+	//		){
+	//		this.attack(target);
+	//		return true;
+	//	} else{
+	//		return false;
+	//	}
+	/*} else*/ if(tile.walkable){
+		this.setPosition(x, y);
+		return true;
+	} else if(tile.diggable){
+		if (this.hasMixin(game.mixins.playerActor)){
+			map.dig(x, y);
 			return true;
 		} else{
 			return false;
 		}
-	} else if(tile.walkable){
-		this.setPosition(x, y, z);
-		return true;
-	} else if(tile.diggable){
-		if (this.hasMixin(game.mixins.playerActor)){
-			map.dig(x, y, z);
-			return true;
-		}
-	} else{
-		return false;
 	}
 }

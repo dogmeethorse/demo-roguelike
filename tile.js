@@ -9,7 +9,8 @@ game.Tile= function(properties){
 game.Tile.extend(game.Glyph);
 
 game.Tile.nullTile			= new game.Tile({});
-game.Tile.floorTile			= new game.Tile({chr : ".", foreground : "white",
+game.Tile.floorTile			= new game.Tile({chr : ".", 
+											foreground : "white",
 											walkable : true, 
 											blocksLight : false});
 game.Tile.wallTile			= new game.Tile({chr : '#',
@@ -17,6 +18,26 @@ game.Tile.wallTile			= new game.Tile({chr : '#',
 											walkable : false,
 											blocksLight : true, 
 											diggable: true});
+game.Tile.solidWall			= new game.Tile({chr : game.SOLIDBLOCK,
+											background : "silver",
+											walkable : false,
+											blocksLight : true,
+											diggable : false});
+game.Tile.shipWindow		= new game.Tile({chr : game.SOLIDBLOCK,
+											background : "yellow",
+											walkable : false,
+											blocksLight : true,
+											diggable : false});
+game.Tile.leftTriangle		= new game.Tile({chr : game.LEFTTRI,
+											foreground : "silver",
+											walkable : false,
+											blocksLight : true,
+											diggable : false});
+game.Tile.rightTriangle		= new game.Tile({chr : game.RIGHTTRI,
+											foreground : "silver",
+											walkable : false,
+											blocksLight : true,
+											diggable : false});
 game.Tile.stairsUpTile		= new game.Tile({chr : "<",
 											foreground : 'white',
 											walkable : true,
