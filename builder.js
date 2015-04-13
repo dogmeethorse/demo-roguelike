@@ -24,12 +24,12 @@ game.Builder.prototype.generateLevel = function(stairs, type){
 		var shipY = Math.max(Math.floor(Math.random() * (this.height - shipHeight)), 2);
 		console.log('ship x =' + shipX);
 		console.log('ship y = ' + shipY);
-		for (var x = 0; x < map.length; x++){
+		for (var x = 0; x < map.length ; x++){
 			for(var y = 0; y < map[0].length; y++){
 				if(y === 0 || y === map[0].length -1){
 					map[x][y] = game.Tile.solidWall;
 					//console.log("placing block");
-				} else if (x === 0 || x === map.width -1){
+				} else if (x === 0 || x === map.length - 1){
 					map[x][y] = game.Tile.solidWall;
 				} else if (x >= shipX && x < shipX + shipWidth &&
 					 	y >= shipY && y < shipY + shipHeight){

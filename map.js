@@ -5,11 +5,15 @@ game.Map = function(tiles, player){
 	this.width = tiles.length;
 	this.height = tiles[0].length;
 	this.entities = {};
+	this.items = {};
 	this.numEntities = 0;
 	this.fov = [];
 	this.stairLocations = {};
 	this.addStairsDown();
-	//this.setupFov();
+	this.setupFov();
+	for (var i  = 0; i < 50; i++){
+		this.addItemAtRandomPosition(new game.Item(game.Item.templates.pineapple));
+	}
 	//this.addEntityAtRandomPosition(player, 0);
 	// adding fungi
 	var templates = [game.fungusTemplate, game.catTemplate, game.newtTemplate]
@@ -20,6 +24,7 @@ game.Map = function(tiles, player){
 	//	}
 	//}
 }
+
 game.Map.prototype.getTile = function(x, y){
 	if (x < 0 || x >= this.width || 
 		y < 0 || y >= this.height){
@@ -29,16 +34,19 @@ game.Map.prototype.getTile = function(x, y){
 		return this.tiles[x][y] || game.Tile.nullTile;
 	}
 }
+
 game.Map.prototype.isEmptyFloor = function(x, y){
 	return this.getTile(x, y) == game.Tile.floorTile &&
 		!this.getEntityAt(x, y);
 }
+
 game.Map.prototype.dig = function(x, y, z) {
     // If the tile is diggable, update it to a floor
     if (this.getTile(x, y).diggable) {
         this.tiles  [x][y] = game.Tile.floorTile;
     }
 }
+
 game.Map.prototype.getRandomFloorPosition = function() {
     // Randomly generate a tile which is a floor
     var x, y;
@@ -58,6 +66,40 @@ game.Map.prototype.addStairsDown = function(){
 	} 
 }
 
+game.Map.prototype.getItemsAt = function(x, y){
+    // Iterate through all entities searching for one with
+    // matching position
+	var key = x + "," + y;
+	return this.items[key];
+}
+
+game.Map.prototype.setItemsAt = function(x, y, items) {
+    // If our items array is empty, then delete the key from the table.
+    var key = x + ',' + y;
+    if (items.length === 0) {
+        if (this.items[key]) {
+            delete this.items[key];
+        }
+    } else {
+        // Simply update the items at that key
+        this.items[key] = items;
+    }
+};
+
+game.Map.prototype.addItem = function(x, y, item){
+    var key = x + ',' + y;
+	if (this.items[key]){
+		this.items[key].push(item);
+	} else{
+		this.setItemsAt(x, y, [item]);
+	}
+}
+
+game.Map.prototype.addItemAtRandomPosition = function(item) {
+    var position = this.getRandomFloorPosition();
+    this.addItem(position.x, position.y, item);
+}
+
 game.Map.prototype.getEntityAt = function(x, y){
     // Iterate through all entities searching for one with
     // matching position
@@ -65,7 +107,7 @@ game.Map.prototype.getEntityAt = function(x, y){
 	return this.entities[key];
 }
 
-game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, centerZ, radius){
+game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius){
 	var results = [];
 	var leftX = centerX - radius;
     var rightX = centerX + radius;
@@ -77,8 +119,7 @@ game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, centerZ,
         if (entity.x >= leftX &&
             entity.x <= rightX && 
             entity.y >= topY &&
-            entity.y <= bottomY &&
-            entity.z === centerZ) {
+            entity.y <= bottomY) {
             results.push(entity);
         }
     }
@@ -140,20 +181,17 @@ game.Map.prototype.setupFov = function() {
     // Keep this in 'map' variable so that we don't lose it.
     var map = this;
     // Iterate through each depth level, setting up the field of vision
-    for (var z = 0; z < this.depth; z++) {
         // We have to put the following code in it's own scope to prevent the
         // depth variable from being hoisted out of the loop.
-        (function() {
-            // For each depth, we need to create a callback which figures out
-            // if light can pass through a given tile.
-            map.fov.push(
-                new ROT.FOV.PreciseShadowcasting(function(x, y) {
-                    return !(map.getTile(x, y).blocksLight);
-                }, {topology: 4}));
-        })();
-    }
+    (function() {
+        // For each depth, we need to create a callback which figures out
+         // if light can pass through a given tile.
+         map.fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
+    	     return !(map.getTile(x, y).blocksLight);
+         }, {topology: 4});
+    })();
 }
 
 game.Map.prototype.getFov = function(depth) {
-    return this.fov[depth];
+    return this.fov;
 }

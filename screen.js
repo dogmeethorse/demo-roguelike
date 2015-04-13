@@ -17,7 +17,7 @@ game.screen = {
 		}
 	},
 	play : {
-		map : null,
+		//map : null,
 		gameEnded : false,
 		setGameEnded : function(gameEnded){
 			this.gameEnded = gameEnded;

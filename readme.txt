@@ -2,6 +2,16 @@ Ideas for Dogelike:
 LONG TERM Features of DOGELIKE
 
 
+Base	- starts as lunar lander
+	- need to replenish. with ice crystal
+		- make oxygen
+		- use water too
+	- build machines that harvest ice crystals from rock
+	- find underground base
+		-can use metals to make more solar panels etc.
+		-pipes 
+		-make room for more doges on moon.
+
 level generation as game mechanic:
 
 Phillip K. Dick hallucinations.
@@ -36,12 +46,3 @@ Enemies - cates
 	- malfunctioning service robots
 	- random dickensian characters
 
-Base	- starts as lunar lander
-	- need to replenish. with ice crystal
-		- make oxygen
-		- use water too
-	- build machines that harvest ice crystals from rock
-	- find underground base
-		-can use metals to make more solar panels etc.
-		-pipes 
-		-make room for more doges on moon.

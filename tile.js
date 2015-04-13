@@ -23,10 +23,15 @@ game.Tile.solidWall			= new game.Tile({chr : game.SOLIDBLOCK,
 											walkable : false,
 											blocksLight : true,
 											diggable : false});
+game.Tile.buildingWall		= new game.Tile({chr : game.SOLIDBLOCK,
+											background : "silver",
+											walkable : false,
+											blocksLight : false,
+											diggable : false});
 game.Tile.shipWindow		= new game.Tile({chr : game.SOLIDBLOCK,
 											background : "yellow",
 											walkable : false,
-											blocksLight : true,
+											blocksLight : false,
 											diggable : false});
 game.Tile.leftTriangle		= new game.Tile({chr : game.LEFTTRI,
 											foreground : "silver",

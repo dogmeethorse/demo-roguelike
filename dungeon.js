@@ -63,10 +63,11 @@ game.dungeon.renderLevel = function(display){
 			var screenWidth = game.screenWidth;
 			var screenHeight = game.screenHeight;
 			var visibleCells = {};
+			var items = this.currentLevel.items;
+			var entities = this.currentLevel.entities; 
 			// topLeftX is kind of a shitty var name. it is the map coordinate of the left side of the screen
 			// Stop from scrolling off the map to the left
 			var topLeftX = Math.max(0, this.player.x - (screenWidth/2));
-			//var topLeftX = 0;
 			// Make sure we are not going of the right hand side of the screen
 			topLeftX = Math.min(topLeftX, this.width - screenWidth);
 			
@@ -74,48 +75,35 @@ game.dungeon.renderLevel = function(display){
 			var topLeftY = Math.max(0, this.player.y - (screenHeight/2));
 			// no make sure not off bottom of map
 			topLeftY = Math.min(topLeftY, this.height - screenHeight);
-			//var topLeftY = 0;
-			//this.map.getFov(this.player.z).compute(
-            //	this.player.x, this.player.y, 
-            //	this.player.sightRadius, 
-            //	function(x, y, radius, visibility) {
-            //		//console.log("adding key");
-            //    	visibleCells[x + "," + y] = true;
-                	//console.log(visibleCells[x + ',' + y]);
-            //	});
-            //console.log(visibleCells);
-            //console.log(this.player.sightRadius);
+			this.currentLevel.getFov().compute(
+            	this.player.x, this.player.y, 
+            	this.player.sightRadius, 
+            	function(x, y, radius, visibility) {
+            		//console.log("adding key");
+                	visibleCells[x + "," + y] = true;
+            	});
 		    for(var x = topLeftX; x < topLeftX + screenWidth; x++){
-		    	//console.log(x);
 		    	for(var y = topLeftY; y < topLeftY + screenHeight; y++){
-		    	//	if (visibleCells[x + ',' + y]){
-		    	//		var tile = this.map.getTile(x, y);
-		    	//		//this.map.exploredTiles[x + "," + y +"," + this.player.z] = true;	
-		    	//		display.draw(x - topLeftX, y - topLeftY, tile.chr, tile.foreground, tile.background);
-		    	//	} else if(this.map.exploredTiles[x + "," +y +","+ this.player.z]){
+		    		var key = x + "," + y;
+		    		var glyph = game.Tile.nullFloorTile;
+		    		if (visibleCells[key]){
+		    			var tile = this.currentLevel.getTile(x, y);
+		    			this.currentLevel.exploredTiles[key] = true;
+		    			if (entities[key]){
+		    				glyph = entities[key];
+		    			} else if(items[key]){
+		    				glyph = items[key][items[key].length - 1];
+		    			} else{
+		    				glyph = tile;
+		    			}
+		    			display.draw(x - topLeftX, y - topLeftY, glyph.chr, glyph.foreground, glyph.background);
+		    		} else if(this.currentLevel.exploredTiles[key]){
 		    			var tile = this.currentLevel.getTile(x, y);
 		    			display.draw(x - topLeftX, y - topLeftY,
 		    						tile.chr,
-		    						tile.foreground,
+		    						tile.outOfSightForeground,
 		    						tile.background);	
-		    	//	}
-		    	}
-		    }
-		    var entities = this.currentLevel.entities;
-		    for(var key in  entities ){
-		    	var entity = entities[key];
-		    	if (entity.x >= topLeftX && entity.y >= topLeftY &&
-		    		entity.x < topLeftX + screenWidth &&
-		    		entity.y < topLeftY + screenHeight){
-                	//if (visibleCells[entity.x + ',' + entity.y]) {
-                    	display.draw(
-                        entity.x - topLeftX, 
-                        entity.y - topLeftY,    
-                        entity.chr, 
-                        entity.foreground, 
-                        entity.background
-                    	);
-                	//}
+		    		}
 		    	}
 		    }
 		    // Get the messages in the player's queue and render them

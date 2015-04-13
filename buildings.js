@@ -3,10 +3,10 @@ game.Building = function(template){
 }
 game.Building.prototype.getTile = function(x, y){
 	var tileCode = this.template[y][x];
-	console.log(tileCode);
+	//console.log(tileCode);
 	//return game.Tile.wallTile;
 	if(tileCode === 1){
-		return game.Tile.solidWall;
+		return game.Tile.buildingWall;
 	} else if (tileCode === 2){
 		return game.Tile.shipWindow;
 	} else {
